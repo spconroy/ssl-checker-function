@@ -110,6 +110,16 @@ function checkTLS(hostname, port = 443, options = {}) {
 }
 
 /**
+ * Convert DER-encoded certificate to PEM format
+ */
+function derToPem(derBuffer) {
+  if (!derBuffer) return null;
+  const base64 = derBuffer.toString('base64');
+  const lines = base64.match(/.{1,64}/g) || [];
+  return `-----BEGIN CERTIFICATE-----\n${lines.join('\n')}\n-----END CERTIFICATE-----`;
+}
+
+/**
  * Parse certificate object into clean format
  */
 function parseCertificate(cert) {
@@ -145,6 +155,7 @@ function parseCertificate(cert) {
     } : null,
     signatureAlgorithm: cert.signatureAlgorithm,
     isCA: cert.ca || false,
+    pem: derToPem(cert.raw),
   };
 }
 
