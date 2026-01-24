@@ -8,7 +8,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_NAME: ssl-checker-func
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.'
+  AZURE_RESOURCE_GROUP: ssl-checker-rg
   NODE_VERSION: '20.x'
 
 jobs:
@@ -31,9 +31,19 @@ jobs:
       - name: Run tests
         run: npm test --if-present
 
-      - name: Deploy to Azure Functions
-        uses: Azure/functions-action@v1
+      - name: Create deployment package
+        run: |
+          zip -r deploy.zip . -x "*.git*" -x "node_modules/*" -x "test/*" -x "*.md" -x ".funcignore"
+
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Functions
+        run: |
+          az functionapp deployment source config-zip \
+            -g ${{ env.AZURE_RESOURCE_GROUP }} \
+            -n ${{ env.AZURE_FUNCTIONAPP_NAME }} \
+            --src deploy.zip \
+            --build-remote true
