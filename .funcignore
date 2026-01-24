@@ -1,0 +1,17 @@
+# Ignore node_modules - Azure will install dependencies during deployment
+node_modules
+
+# Ignore test files
+test
+*.test.js
+
+# Ignore local settings
+local.settings.json
+
+# Ignore git
+.git
+.gitignore
+
+# Ignore docs
+README.md
+*.md

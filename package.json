@@ -1,0 +1,19 @@
+{
+  "name": "ssl-checker-function",
+  "version": "1.0.0",
+  "description": "Azure Function for SSL/TLS certificate and cipher inspection",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "test": "node test/test-ssl-checker.js"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  },
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
