@@ -10,21 +10,23 @@ const http = require('http');
 
 const PROBES = [
   // WordPress
-  { path: '/wp-login.php', cms: 'WordPress', risk: 'medium', description: 'WordPress login page is publicly accessible', method: 'HEAD' },
+  // allow403: true means a 403 is evidence the path exists (login/admin pages).
+  // By default 403 is ignored — WAFs like Cloudflare return 403 for any blocked path.
+  { path: '/wp-login.php', cms: 'WordPress', risk: 'medium', description: 'WordPress login page is publicly accessible', method: 'HEAD', allow403: true },
   { path: '/xmlrpc.php', cms: 'WordPress', risk: 'high', description: 'XML-RPC enabled — potential brute-force and DDoS vector', method: 'HEAD' },
   { path: '/wp-json/wp/v2/users', cms: 'WordPress', risk: 'high', description: 'WordPress user enumeration endpoint is accessible', method: 'GET', checkBody: true },
   { path: '/readme.html', cms: 'WordPress', risk: 'medium', description: 'WordPress readme.html exposes version information', method: 'HEAD' },
   { path: '/wp-content/debug.log', cms: 'WordPress', risk: 'critical', description: 'WordPress debug log is publicly accessible — may contain sensitive data', method: 'HEAD' },
 
   // Joomla
-  { path: '/administrator', cms: 'Joomla', risk: 'medium', description: 'Joomla admin panel is publicly accessible', method: 'HEAD' },
+  { path: '/administrator', cms: 'Joomla', risk: 'medium', description: 'Joomla admin panel is publicly accessible', method: 'HEAD', allow403: true },
   { path: '/configuration.php.bak', cms: 'Joomla', risk: 'critical', description: 'Joomla configuration backup file may contain database credentials', method: 'HEAD' },
 
   // Drupal
-  { path: '/user/login', cms: 'Drupal', risk: 'low', description: 'Drupal login page is publicly accessible', method: 'HEAD' },
+  { path: '/user/login', cms: 'Drupal', risk: 'low', description: 'Drupal login page is publicly accessible', method: 'HEAD', allow403: true },
   { path: '/CHANGELOG.txt', cms: 'Drupal', risk: 'medium', description: 'Drupal changelog exposes version information', method: 'HEAD' },
 
-  // Generic
+  // Generic — never treat 403 as found (WAF false positives)
   { path: '/.env', cms: null, risk: 'critical', description: 'Environment file exposed — may contain API keys, database credentials, secrets', method: 'HEAD' },
   { path: '/.git/HEAD', cms: null, risk: 'critical', description: 'Git repository exposed — source code and history accessible', method: 'GET', checkBody: true, bodyPattern: /^ref:/ },
   { path: '/server-status', cms: null, risk: 'high', description: 'Apache server-status page exposed — reveals active connections and URLs', method: 'HEAD' },
@@ -148,7 +150,7 @@ async function runProbe(domain, probe) {
       if (status === 200) {
         return { found: true, status, probe };
       }
-      if (status === 403) {
+      if (status === 403 && probe.allow403) {
         return { found: true, status, probe, blocked: true };
       }
       return { found: false, status, probe };

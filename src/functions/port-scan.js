@@ -114,16 +114,30 @@ async function handler(request, context) {
       }
     }
 
-    // Resolve domain to IP
+    // Resolve domain to IP — try system DNS first, then DoH fallback
     let ip;
     try {
       const addresses = await dns.promises.resolve4(domain);
       ip = addresses[0];
-    } catch (dnsErr) {
+    } catch {
+      // Fallback: resolve via Cloudflare DNS-over-HTTPS
+      try {
+        const dohRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=A`, {
+          headers: { Accept: 'application/dns-json' },
+        });
+        if (dohRes.ok) {
+          const dohData = await dohRes.json();
+          const aRecord = (dohData.Answer || []).find((r) => r.type === 1);
+          if (aRecord) ip = aRecord.data;
+        }
+      } catch { /* ignore */ }
+    }
+
+    if (!ip) {
       return {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        jsonBody: { error: `DNS resolution failed for "${domain}": ${dnsErr.code || dnsErr.message}` },
+        jsonBody: { error: `Could not resolve IP address for "${domain}"` },
       };
     }
 

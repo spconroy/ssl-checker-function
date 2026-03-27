@@ -50,7 +50,7 @@ const COOKIE_SIGNATURES = [
 ];
 
 const HTML_PATTERNS = [
-  { regex: /<meta\s+name=["']generator["']\s+content=["']WordPress\s*([\d.]*)/i, name: 'WordPress', category: 'CMS', versionGroup: 1 },
+  { regex: /<meta\s+name=["']generator["']\s+content=["']WordPress\s*(\d[\d.]*)?/i, name: 'WordPress', category: 'CMS', versionGroup: 1 },
   { regex: /<meta\s+name=["']generator["']\s+content=["']Joomla/i, name: 'Joomla', category: 'CMS' },
   { regex: /<meta\s+name=["']generator["']\s+content=["']Drupal/i, name: 'Drupal', category: 'CMS' },
   { regex: /jquery[/.\-]?([\d.]+)(?:\.min)?\.js/i, name: 'jQuery', category: 'JavaScript Library', versionGroup: 1 },
